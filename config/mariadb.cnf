@@ -1,0 +1,19 @@
+[mysqld]
+# InnoDB buffer pool — set to ~50% of available RAM on the VPS
+# Adjust down if VPS has less than 2 GB RAM
+innodb_buffer_pool_size = 512M
+innodb_log_file_size = 128M
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+
+# Connections — supports 6-20 WooCommerce sites
+max_connections = 200
+max_allowed_packet = 64M
+
+# Query cache (disabled in MariaDB 10.1.7+ by default — keep off)
+query_cache_type = 0
+query_cache_size = 0
+
+# Charset
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci

@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# WordPress uploads
+wp-content/uploads/
+
+# Database dumps (keep backups/ dir, not contents)
+backups/*.sql
+backups/*.sql.gz
+
+# WordPress-generated artifacts
+wp-content/upgrade/
+wp-content/cache/
+wp-content/object-cache.php
+wp-content/debug.log
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Superpowers brainstorm sessions
+.superpowers/

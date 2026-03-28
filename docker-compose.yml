@@ -1,0 +1,114 @@
+services:
+
+  # ── WordPress Multisite + WooCommerce ────────────────────────────
+  wordpress:
+    image: wordpress:6.7-php8.3-apache
+    container_name: cargomarket_wordpress
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+      NETWORK_DOMAIN: ${NETWORK_DOMAIN}
+      # Salts — passed through to wp-config.php by the official image
+      WORDPRESS_AUTH_KEY: ${WORDPRESS_AUTH_KEY}
+      WORDPRESS_SECURE_AUTH_KEY: ${WORDPRESS_SECURE_AUTH_KEY}
+      WORDPRESS_LOGGED_IN_KEY: ${WORDPRESS_LOGGED_IN_KEY}
+      WORDPRESS_NONCE_KEY: ${WORDPRESS_NONCE_KEY}
+      WORDPRESS_AUTH_SALT: ${WORDPRESS_AUTH_SALT}
+      WORDPRESS_SECURE_AUTH_SALT: ${WORDPRESS_SECURE_AUTH_SALT}
+      WORDPRESS_LOGGED_IN_SALT: ${WORDPRESS_LOGGED_IN_SALT}
+      WORDPRESS_NONCE_SALT: ${WORDPRESS_NONCE_SALT}
+      # Load extra constants from mounted file
+      WORDPRESS_CONFIG_EXTRA: |
+        if ( file_exists( ABSPATH . 'wp-extra.php' ) ) {
+            require_once ABSPATH . 'wp-extra.php';
+        }
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - ./config/wp-extra.php:/var/www/html/wp-extra.php:ro
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
+      - ./config/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+    networks:
+      - internal
+      - dokploy-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+
+  # ── MariaDB ──────────────────────────────────────────────────────
+  db:
+    image: mariadb:10.11
+    container_name: cargomarket_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./config/mariadb.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ── Redis (object cache) ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cargomarket_redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+  # ── WP-CLI (run-once tool, not started by default) ───────────────
+  wpcli:
+    image: wordpress:cli-php8.3
+    container_name: cargomarket_wpcli
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - ./config/wp-extra.php:/var/www/html/wp-extra.php:ro
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      NETWORK_DOMAIN: ${NETWORK_DOMAIN}
+    networks:
+      - internal
+    depends_on:
+      - db
+      - wordpress
+    profiles:
+      - tools
+    entrypoint: wp
+    user: "33:33"
+
+volumes:
+  db_data:
+  redis_data:
+
+networks:
+  internal:
+    driver: bridge
+  dokploy-network:
+    external: true
