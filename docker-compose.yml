@@ -1,3 +1,5 @@
+name: cargomarket-multisite
+
 services:
 
   # ── WordPress Multisite + WooCommerce ────────────────────────────
