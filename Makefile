@@ -21,6 +21,7 @@ WPCLI = docker run --rm \
   -e WORDPRESS_DB_USER=$(MYSQL_USER) \
   -e WORDPRESS_DB_PASSWORD=$(MYSQL_PASSWORD) \
   -e NETWORK_DOMAIN=$(NETWORK_DOMAIN) \
+  -e WP_CLI_CACHE_DIR=/tmp/wp-cli-cache \
   --user 33:33 \
   --entrypoint wp \
   wordpress:cli-php8.3

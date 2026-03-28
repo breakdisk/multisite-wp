@@ -4,7 +4,7 @@ services:
 
   # ── WordPress Multisite + WooCommerce ────────────────────────────
   wordpress:
-    image: wordpress:6.7-php8.3-apache
+    image: wordpress:php8.3-apache
     container_name: cargomarket_wordpress
     restart: unless-stopped
     environment:
