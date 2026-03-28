@@ -22,6 +22,7 @@ WPCLI = docker run --rm \
   -e WORDPRESS_DB_PASSWORD=$(MYSQL_PASSWORD) \
   -e NETWORK_DOMAIN=$(NETWORK_DOMAIN) \
   --user 33:33 \
+  --entrypoint wp \
   wordpress:cli-php8.3
 
 ## wp cmd="..."  —  Run any WP-CLI command
