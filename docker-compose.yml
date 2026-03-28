@@ -83,25 +83,6 @@ services:
     networks:
       - internal
 
-  # ── WP-CLI (run-once tool, not started by default) ───────────────
-  wpcli:
-    image: wordpress:cli-php8.3
-    container_name: cargomarket_wpcli
-    volumes:
-      - ./wp-content:/var/www/html/wp-content
-      - ./config/wp-extra.php:/var/www/html/wp-extra.php:ro
-    environment:
-      WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
-      WORDPRESS_DB_USER: ${MYSQL_USER}
-      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
-      NETWORK_DOMAIN: ${NETWORK_DOMAIN}
-    networks:
-      - internal
-    profiles:
-      - tools
-    entrypoint: wp
-    user: "33:33"
 
 volumes:
   db_data:
